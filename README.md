@@ -22,6 +22,11 @@ Start parsing
 ```python
 python manage.py parse
 ```
+Update average rating and rating givers
+```python
+python manage.py ratings
+```
+
 Start Server
 ```python
 python manage.py runserver
@@ -46,10 +51,12 @@ Request Type: POST
 Example URL: http://localhost:8000/movies/
 HEADERS: {"Content-Type": "application/json"}
 BODY = {
-    "title": "Judy",
+    "title": "Parasite",
     "year": "2019",
-    "awards": "1",
-    "nominations": "2",
+    "awards": "4",
+    "nominations": "6",
+    "average_rating": 1,
+    "rating_givers": 2,
     "info":""
 }
 ```
@@ -59,11 +66,7 @@ Request Type: PUT
 Example URL: http://localhost:8000/movies/1/
 HEADERS: {"Content-Type": "application/json"}
 BODY = {
-    "title": "Judy Updated",
-    "year": "2019",
-    "awards": "1",
-    "nominations": "2",
-    "info":""
+    "title": "Judy Updated"
 }
 ```
 DELETE API

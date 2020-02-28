@@ -6,6 +6,8 @@ class Movie(models.Model):
     year = models.CharField(max_length=10, db_index=True)
     awards = models.CharField(max_length=10)
     nominations = models.CharField(max_length=10)
+    average_rating = models.FloatField(null=True, blank=True)
+    rating_givers = models.IntegerField(null=True, blank=True)
     info = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -13,4 +15,3 @@ class Movie(models.Model):
 
     class Meta:
         unique_together = [['title', 'year']]
-

@@ -3,6 +3,7 @@ import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from movie.models import Movie
+from django.core.management.base import BaseCommand
 
 start_url = "https://en.wikipedia.org/wiki/List_of_Academy_Award-winning_films"
 
@@ -68,32 +69,32 @@ def get_movie_detail(url):
     return data
 
 
-# Get start_url html content as soup
-soup = get_soup(start_url)
-movie_data = {}
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        # Get start_url html content as soup
+        soup = get_soup(start_url)
 
-if soup:
-    # For each movie info row, fetch data
-    for tr in soup.find('table', class_='wikitable').find_all('tr'):
-        try:
-            link = urljoin(start_url, tr.find_all('td')[0].find('a').get('href'))
-            title = tr.find_all('td')[0].text.strip()
-            year = tr.find_all('td')[1].text.strip()
-            awards = soup_sanitizing(tr.find_all('td')[2]).text.strip()
-            nominations = soup_sanitizing(tr.find_all('td')[3]).text.strip()
+        if soup:
+            # For each movie info row, fetch data
+            for tr in soup.find('table', class_='wikitable').find_all('tr'):
+                try:
+                    link = urljoin(start_url, tr.find_all('td')[0].find('a').get('href'))
+                    title = tr.find_all('td')[0].text.strip()
+                    year = tr.find_all('td')[1].text.strip()
+                    awards = soup_sanitizing(tr.find_all('td')[2]).text.strip()
+                    nominations = soup_sanitizing(tr.find_all('td')[3]).text.strip()
 
-            # Fetch movie detail data from respective movie link
-            detail = get_movie_detail(link)
+                    # Fetch movie detail data from respective movie link
+                    detail = get_movie_detail(link)
 
-            movie = Movie.objects.create(
-                title=title,
-                year=year,
-                awards=awards,
-                nominations=nominations,
-                info=json.dumps(detail)
-            )
+                    movie = Movie.objects.create(
+                        title=title,
+                        year=year,
+                        awards=awards,
+                        nominations=nominations,
+                        info=json.dumps(detail)
+                    )
 
-            print("Stored data for Movie: %s" % movie)
-        except Exception:
-            pass
-
+                    print("Stored data for Movie: %s" % movie)
+                except Exception:
+                    pass
