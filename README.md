@@ -11,7 +11,14 @@ Install requirements
 ```python
 pip install -r requirements.txt
 ```
+
+Migrate database
+
+```python
+python manage.py migrate
+```
+
 Start parsing
 ```python
-python parse.py
+python manage.py parse
 ```

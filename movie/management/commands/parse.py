@@ -2,6 +2,7 @@ import json
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from movie.models import Movie
 
 start_url = "https://en.wikipedia.org/wiki/List_of_Academy_Award-winning_films"
 
@@ -12,7 +13,7 @@ def soup_sanitizing(soup):
     """
     for sup in soup.findAll('sup'):
         sup.decompose()
-    
+
     return soup
 
 
@@ -22,37 +23,38 @@ def get_soup(url):
     url(string): URL to parse
     return BeautifulSoup soup
     """
-    
-    headers = {'User-Agent' : 'Mozilla/5.0'}
-    
+
+    headers = {'User-Agent': 'Mozilla/5.0'}
+
     try:
-        r = requests.get(url, headers = headers, timeout=5)
+        r = requests.get(url, headers=headers, timeout=5)
 
         if r.status_code != 200:
             raise Exception('Unreachable URL')
 
         return BeautifulSoup(r.content, 'html.parser')
     except Exception:
-        return None    
+        return None
+
 
 def get_movie_detail(url):
     """
     Parses URL and fetches movie info
     url(string): URL to parse
-    return Dict 
-    
+    return Dict
+
     """
     soup = get_soup(url)
     data = {}
-    
+
     if not soup:
         return data
-    
+
     infobox = soup.find('table', class_='infobox')
-    
+
     if not infobox:
         return data
-    
+
     for tr in soup.find('table', class_='infobox').findAll('tr'):
         th = tr.find('th')
         td = tr.find('td')
@@ -62,8 +64,9 @@ def get_movie_detail(url):
             info = td.text.strip()
             info = info.strip('\n')
             data[th.text] = info
-                
+
     return data
+
 
 # Get start_url html content as soup
 soup = get_soup(start_url)
@@ -74,26 +77,23 @@ if soup:
     for tr in soup.find('table', class_='wikitable').find_all('tr'):
         try:
             link = urljoin(start_url, tr.find_all('td')[0].find('a').get('href'))
-            name = tr.find_all('td')[0].text.strip()
+            title = tr.find_all('td')[0].text.strip()
             year = tr.find_all('td')[1].text.strip()
             awards = soup_sanitizing(tr.find_all('td')[2]).text.strip()
             nominations = soup_sanitizing(tr.find_all('td')[3]).text.strip()
 
-            data = {
-                'name': name,
-                'year': year,
-                'awards': awards,
-                'nominations': nominations
-            }
-
             # Fetch movie detail data from respective movie link
             detail = get_movie_detail(link)
 
-            # Storing movie data
-            movie_data = {**movie_data, **{ link: { **data, **detail } }}
-            
-            # Output to terminal for each parsing
-            print("Parsing %s" % link, '\n')
-            print(json.dumps({ **data, **detail }, indent=2), '\n\n')
+            movie = Movie.objects.create(
+                title=title,
+                year=year,
+                awards=awards,
+                nominations=nominations,
+                info=json.dumps(detail)
+            )
+
+            print("Stored data for Movie: %s" % movie)
         except Exception:
             pass
+
